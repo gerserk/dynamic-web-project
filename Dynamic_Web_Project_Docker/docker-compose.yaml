@@ -1,0 +1,47 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=rubrica
+      - DB_PASSWORD=rubrica
+      - DB_NAME=rubrica
+    depends_on:
+      - db
+    restart: unless-stopped
+    links:
+      - db
+
+  db:
+    build:
+      context: ./mysql
+      dockerfile: Dockerfile
+    ports:
+      - "3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=rubrica
+      - MYSQL_DATABASE=rubrica
+      - MYSQL_USER=rubrica  
+      - MYSQL_PASSWORD=rubrica
+    restart: always
+
+  nginx:
+    container_name: nginx
+    links:
+      - backend
+    ports:
+      - 80:80
+    build:
+      dockerfile: Dockerfile
+      context: ./nginx
+    restart: always
+    volumes:
+      - ./frontend:/var/www/html
+
+volumes:
+  mysql_data:

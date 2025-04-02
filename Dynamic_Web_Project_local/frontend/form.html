@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .button-group {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .save-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .cancel-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dati Utente</h1>
+    
+    <form id="userForm">
+        <div class="form-group">
+            <label for="id">ID:</label>
+            <input type="text" id="id" name="id" required>
+            <div id="idError" class="error">Questo campo è obbligatorio</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="nome">Nome:</label>
+            <input type="text" id="nome" name="nome" required>
+            <div id="nomeError" class="error">Questo campo è obbligatorio</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="cognome">Cognome:</label>
+            <input type="text" id="cognome" name="cognome" required>
+            <div id="cognomeError" class="error">Questo campo è obbligatorio</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="indirizzo">Indirizzo:</label>
+            <input type="text" id="indirizzo" name="indirizzo" required>
+            <div id="indirizzoError" class="error">Questo campo è obbligatorio</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="telefono">Telefono:</label>
+            <input type="text" id="telefono" name="telefono" required>
+            <div id="telefonoError" class="error">Questo campo è obbligatorio</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="eta">Età:</label>
+            <input type="number" id="eta" name="eta" min="0" required>
+            <div id="etaError" class="error">Questo campo è obbligatorio</div>
+        </div>
+        
+        <div class="button-group">
+            <button type="button" id="saveButton" class="save-btn">SALVA</button>
+            <button type="button" id="cancelButton" class="cancel-btn">ANNULLA</button>
+        </div>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const saveButton = document.getElementById('saveButton');
+            const cancelButton = document.getElementById('cancelButton');
+            const form = document.getElementById('userForm');
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const userData = {
+                id: urlParams.get('id'),
+                nome: urlParams.get('nome'),
+                cognome: urlParams.get('cognome'),
+                indirizzo: urlParams.get('indirizzo'),
+                telefono: urlParams.get('telefono'),
+                eta: urlParams.get('eta')
+            };
+            
+            if (!userData.id) {
+                document.getElementById('id').readOnly = false;
+            }
+
+            document.getElementById('id').value = userData.id || ''; 
+            document.getElementById('nome').value = userData.nome || '';
+            document.getElementById('cognome').value = userData.cognome || '';
+            document.getElementById('indirizzo').value = userData.indirizzo || '';
+            document.getElementById('telefono').value = userData.telefono || '';
+            document.getElementById('eta').value = userData.eta || '';
+
+            saveButton.addEventListener('click', async function() {
+                if (validateForm()) {
+                    await saveUser(userData.id);
+                }
+            });
+            
+            cancelButton.addEventListener('click', function() {
+                window.location.href = 'index.html';
+            });
+            
+            function validateForm() {
+                const fields = ['id', 'nome', 'cognome', 'indirizzo', 'telefono', 'eta'];
+                let isValid = true;
+                
+                fields.forEach(field => {
+                    const input = document.getElementById(field);
+                    const error = document.getElementById(`${field}Error`);
+                    
+                    if (!input.value.trim()) {
+                        error.style.display = 'block';
+                        isValid = false;
+                    } else {
+                        error.style.display = 'none';
+                    }
+                });
+                
+                return isValid;
+            }
+            
+            async function saveUser(id) {
+                try {
+                    const userData = {
+                        id: parseInt(document.getElementById('id').value), 
+                        nome: document.getElementById('nome').value,
+                        cognome: document.getElementById('cognome').value,
+                        indirizzo: document.getElementById('indirizzo').value,
+                        telefono: document.getElementById('telefono').value,
+                        anni: parseInt(document.getElementById('eta').value) 
+                    };
+
+                    if (isNaN(userData.id)) userData.id = null; 
+                    if (isNaN(userData.anni)) userData.anni = null; 
+
+                    const response =await fetch('/api/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(userData)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to save user data');
+                    }
+                    
+                    alert('Utente salvato con successo!');
+                    window.location.href = 'index.html';
+                    
+                } catch (error) {
+                    console.error('Error saving user:', error);
+                    alert('Si è verificato un errore durante il salvataggio. Riprova.');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

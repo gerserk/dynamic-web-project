@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Listing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .action-btn {
+            padding: 5px 10px;
+            margin-right: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .delete-btn {
+            background-color: #ff4d4d;
+            color: white;
+        }
+        .edit-btn {
+            background-color: #4d94ff;
+            color: white;
+        }
+        .new-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            font-size: 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <h1>User Listing</h1>
+        <button id="newUserBtn" class="new-btn">NUOVO</button>
+    </div>
+    
+    <table id="userTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Cognome</th>
+                <th>Telefono</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody id="userTableBody">
+        </tbody>
+    </table>
+
+    <script>
+        async function fetchUserData() {
+            try {
+                const response = await fetch('/api/');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+                return null;
+            }
+        }
+
+        async function deleteUser(userId) {
+            try {
+                const response = await fetch(`/api/?id=${userId}`, {
+                    method: 'DELETE',
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to delete user');
+                }
+                
+                populateUserTable();
+                
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                alert('Failed to delete user. Please try again.');
+            }
+        }
+
+        async function populateUserTable() {
+            const userData = await fetchUserData();
+            if (!userData) return;
+
+            const tableBody = document.getElementById('userTableBody');
+
+            tableBody.innerHTML = '';
+
+            const users = userData.message;
+
+            users.forEach(user => {
+                const row = document.createElement('tr');
+
+
+                const id = user[0];
+                const nome = user[1];
+                const cognome = user[2];
+                const indirizzo = user[3]
+                const telefono = user[4];
+                const eta = user[5];
+
+                const idCell = document.createElement('td');
+                idCell.textContent = id;
+
+                const nomeCell = document.createElement('td');
+                nomeCell.textContent = nome;
+
+                const cognomeCell = document.createElement('td');
+                cognomeCell.textContent = cognome;
+
+                const telefonoCell = document.createElement('td');
+                telefonoCell.textContent = telefono;
+
+                const actionCell = document.createElement('td');
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = 'ELIMINA';
+                deleteBtn.className = 'action-btn delete-btn';
+                deleteBtn.onclick = () => deleteUser(id);
+                
+                const editBtn = document.createElement('button');
+                editBtn.textContent = 'MODIFICA';
+                editBtn.className = 'action-btn edit-btn';
+                editBtn.onclick = () => {
+                    const userData = {
+                        id: id,
+                        nome: nome,
+                        cognome: cognome,
+                        indirizzo:indirizzo,
+                        telefono: telefono,
+                        eta:eta
+
+                    };
+                    const queryString = new URLSearchParams(userData).toString();
+                    window.location.href = `form.html?${queryString}`;
+                };
+                actionCell.appendChild(deleteBtn);
+                actionCell.appendChild(editBtn);
+
+                row.appendChild(idCell);
+                row.appendChild(nomeCell);
+                row.appendChild(cognomeCell);
+                row.appendChild(telefonoCell);
+                row.appendChild(actionCell);
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('newUserBtn').addEventListener('click', function() {
+                window.location.href = 'form.html';
+            });
+            
+            populateUserTable();
+        });
+    </script>
+</body>
+</html>
